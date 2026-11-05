@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEDOOM | ملابس شتوية</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f5;color:#222}
+header{background:#111;color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:bold;letter-spacing:2px}
+.cart{background:#f5a623;color:#111;padding:11px;border-radius:8px;font-weight:bold}
+.hero{background:#222;color:white;padding:38px 18px;text-align:center}
+.hero h1{font-size:28px;margin-bottom:14px}
+.hero p{color:#ddd;margin-bottom:20px;font-size:17px}
+button{cursor:pointer}
+.hero button{background:#f5a623;border:0;padding:13px 24px;border-radius:7px;font-weight:bold}
+.search{padding:15px}
+.search input{width:100%;padding:14px;border:1px solid #ddd;border-radius:10px;font-size:16px}
+.categories{display:flex;gap:8px;padding:0 12px 15px;overflow-x:auto}
+.categories button{border:0;padding:11px 16px;border-radius:25px;background:white;white-space:nowrap}
+.categories button.active{background:#111;color:white}
+h2{padding:18px 15px}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 12px 25px}
+.product{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #00000012}
+.product img{width:100%;height:190px;object-fit:cover;display:block;background:#eee}
+.product-info{padding:12px}
+.product h3{font-size:15px;line-height:1.6;margin-bottom:9px}
+.price{color:#a96800;font-size:18px;font-weight:bold;margin-bottom:12px}
+.product button,.main-btn{width:100%;background:#111;color:white;border:0;padding:12px;border-radius:7px;font-size:15px;margin-top:8px}
+.cart-section{background:white;padding:17px;margin:12px;border-radius:10px}
+.cart-section h2{padding:0 0 15px}
+.cart-line{border-bottom:1px solid #eee;padding:12px 0;line-height:1.9}
+.remove{background:#eee;border:0;padding:6px 10px;border-radius:5px}
+footer{background:#111;color:#ccc;text-align:center;padding:24px;line-height:2}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:10;overflow-y:auto;padding:14px}
+.modal-content{background:white;max-width:500px;margin:15px auto;border-radius:14px;overflow:hidden}
+.modal-img{width:100%;height:260px;object-fit:cover}
+.modal-body{padding:17px}
+.close{float:left;border:0;background:#eee;padding:8px 12px;border-radius:7px}
+.modal-body h2{padding:12px 0}
+.modal-price{font-size:22px;color:#a96800;font-weight:bold;margin:12px 0}
+.option-title{margin:17px 0 10px;font-weight:bold}
+.options{display:flex;flex-wrap:wrap;gap:8px}
+.options button{padding:10px 14px;background:white;border:1px solid #ccc;border-radius:7px}
+.options button.selected{background:#111;color:white}
+.quantity{display:flex;align-items:center;gap:15px;margin:15px 0}
+.quantity button{width:36px;height:36px;border:0;border-radius:6px;background:#eee;font-size:20px}
+.main-btn{background:#f5a623;color:#111;font-weight:bold}
+.checkout-input{display:block;width:100%;padding:13px;margin:8px 0 15px;border:1px solid #ddd;border-radius:8px;font-size:16px;font-family:Arial}
+#checkout label{font-weight:bold}
+.payment-option{display:block;border:1px solid #ddd;border-radius:9px;padding:13px;margin:10px 0}
+.payment-option input{margin-left:8px}
+.summary{background:#f5f5f5;padding:14px;border-radius:8px;margin:15px 0;line-height:2}
+.payment-info{background:#fff8e8;border:1px solid #f5a623;padding:14px;border-radius:8px;line-height:1.9;margin:12px 0}
+.success{background:#eaf8ed;padding:15px;border-radius:8px;line-height:2;margin:15px 0}
+.small{font-size:13px;color:#666;line-height:1.7}
+@media(min-width:700px){.products{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">HEDOOM</div>
+  <div class="cart">🛒 السلة: <span id="cartCount">0</span></div>
+</header>
+
+<section class="hero">
+  <h1>شتاك أحلى مع HEDOOM</h1>
+  <p>اكتشف أحدث الهوديز والملابس الشتوية</p>
+  <button onclick="document.getElementById('productsTitle').scrollIntoView()">تسوق الآن</button>
+</section>
+
+<div class="search">
+  <input id="searchInput" placeholder="ابحث عن هودي أو جاكيت..." oninput="renderProducts()">
+</div>
+
+<div class="categories">
+  <button class="active" onclick="setCategory('الكل',this)">الكل</button>
+  <button onclick="setCategory('هوديز',this)">هوديز</button>
+  <button onclick="setCategory('سويت شيرت',this)">سويت شيرت</button>
+  <button onclick="setCategory('جاكيتات',this)">جاكيتات</button>
+  <button onclick="setCategory('بنطلونات',this)">بنطلونات</button>
+</div>
+
+<h2 id="productsTitle">منتجاتنا الشتوية</h2>
+<div class="products" id="products"></div>
+
+<section class="cart-section">
+  <h2>🛒 سلة التسوق</h2>
+  <div id="cartItems">السلة فارغة</div>
+  <h3 style="margin-top:15px">قيمة المنتجات: <span id="subtotal">0</span> جنيه</h3>
+  <button class="main-btn" onclick="openCheckout()">إتمام الطلب</button>
+</section>
+
+<!-- صفحة إتمام الطلب -->
+<section class="cart-section" id="checkout" style="display:none">
+  <h2>إتمام الطلب</h2>
+
+  <form id="checkoutForm" onsubmit="confirmOrder(event)">
+    <label>الاسم بالكامل</label>
+    <input class="checkout-input" name="name" required placeholder="اكتب اسمك بالكامل">
+
+    <label>رقم الهاتف</label>
+    <input class="checkout-input" name="phone" type="tel"
+      required pattern="01[0125][0-9]{8}" placeholder="01xxxxxxxxx">
+
+    <label>المحافظة</label>
+    <input class="checkout-input" name="governorate" required placeholder="مثال: أسوان">
+
+    <label>المدينة أو المركز</label>
+    <input class="checkout-input" name="city" required placeholder="اكتب المدينة">
+
+    <label>العنوان بالتفصيل</label>
+    <textarea class="checkout-input" name="address" required rows="3"
+      placeholder="الشارع ورقم المنزل وأقرب علامة"></textarea>
+
+    <label>ملاحظات الطلب (اختياري)</label>
+    <textarea class="checkout-input" name="notes" rows="2"
+      placeholder="أي ملاحظات إضافية"></textarea>
+
+    <div class="option-title">طريقة دفع المقدم</div>
+
+    <label class="payment-option">
+      <input type="radio" name="payment" value="Vodafone Cash" required
+      onchange="updatePaymentInfo()">
+      فودافون كاش
+    </label>
+
+    <label class="payment-option">
+      <input type="radio" name="payment" value="InstaPay" required
+      onchange="updatePaymentInfo()">
+      InstaPay
+    </label>
+
+    <div class="summary" id="checkoutSummary"></div>
+
+    <div class="payment-info" id="paymentInfo" style="display:none"></div>
+
+    <label>رقم عملية التحويل (بعد الدفع)</label>
+    <input class="checkout-input" name="transaction"
+      placeholder="اكتب رقم العملية بعد التحويل">
+
+    <p class="small">
+      بعد تحويل المقدم، أدخل رقم العملية. سيتم مراجعة التحويل يدويًا.
+      لا ترسل الرقم السري أو رمز OTP لأي شخص.
+    </p>
+
+    <button class="main-btn" type="submit">تأكيد الطلب</button>
+    <button type="button" class="main-btn"
+      onclick="closeCheckout()" style="background:#eee;color:#111">
+      الرجوع للمتجر
+    </button>
+  </form>
+</section>
+
+<section class="cart-section" id="confirmation" style="display:none">
+  <h2>تم تسجيل طلبك</h2>
+  <div id="confirmationDetails"></div>
+  <button class="main-btn" onclick="newShopping()">العودة للتسوق</button>
+</section>
+
+<footer>
+  <h3>HEDOOM</h3>
+  <p>ستايلك الشتوي يبدأ من هنا</p>
+  <p>© 2026 HEDOOM</p>
+</footer>
+
+<!-- نافذة تفاصيل المنتج -->
+<div class="modal" id="productModal">
+  <div class="modal-content">
+    <img id="modalImage" class="modal-img" src="" alt="صورة المنتج">
+    <div class="modal-body">
+      <button class="close" onclick="closeModal()">✕</button>
+      <h2 id="modalName"></h2>
+      <div class="modal-price"><span id="modalPrice"></span> جنيه</div>
+
+      <div class="option-title">المقاس:</div>
+      <div class="options" id="sizeOptions"></div>
+
+      <div class="option-title">اللون:</div>
+      <div class="options" id="colorOptions"></div>
+
+      <div class="option-title">الكمية:</div>
+      <div class="quantity">
+        <button onclick="changeQuantity(-1)">−</button>
+        <span id="quantity">1</span>
+        <button onclick="changeQuantity(1)">+</button>
+      </div>
+
+      <button class="main-btn" onclick="addSelectedToCart()">أضف إلى السلة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const items = [
+  {
+    id:1,name:"هودي أسود Oversize",category:"هوديز",price:650,
+    image:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80",
+    colors:["أسود","رمادي","أبيض"]
+  },
+  {
+    id:2,name:"هودي رمادي شتوي",category:"هوديز",price:600,
+    image:"https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=600&q=80",
+    colors:["رمادي","أسود","بيج"]
+  },
+  {
+    id:3,name:"سويت شيرت بيج",category:"سويت شيرت",price:550,
+    image:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
+    colors:["بيج","أبيض","أسود"]
+  },
+  {
+    id:4,name:"جاكيت شتوي",category:"جاكيتات",price:1200,
+    image:"https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=600&q=80",
+    colors:["أسود","بني"]
+  },
+  {
+    id:5,name:"هودي أبيض",category:"هوديز",price:620,
+    image:"https://images.unsplash.com/photo-1572495641004-28421ae2e6c2?auto=format&fit=crop&w=600&q=80",
+    colors:["أبيض","أسود"]
+  },
+  {
+    id:6,name:"بنطلون شتوي",category:"بنطلونات",price:500,
+    image:"https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80",
+    colors:["أسود","رمادي"]
+  }
+];
+
+const sizes=["S","M","L","XL","XXL"];
+let category="الكل";
+let cart=[];
+let selectedProduct=null;
+let selectedSize="";
+let selectedColor="";
+let quantity=1;
+let currentOrder=null;
+
+const SHIPPING=60;
+
+/*
+  ضع بيانات الدفع الخاصة بمتجرك هنا قبل نشره.
+  لا تستخدم رقمًا غير مملوك لك.
+*/
+const PAYMENT_DETAILS={
+  "Vodafone Cash":"ضع رقم فودافون كاش الخاص بمتجرك هنا",
+  "InstaPay":"ضع عنوان InstaPay الخاص بمتجرك هنا"
+};
+
+function renderProducts(){
+  const search=document.getElementById("searchInput").value.toLowerCase();
+  const filtered=items.filter(item=>
+    (category==="الكل"||item.category===category)&&
+    item.name.toLowerCase().includes(search)
+  );
+
+  document.getElementById("products").innerHTML=filtered.map(item=>`
+    <div class="product">
+      <img src="${item.image}" alt="${item.name}"
+      onerror="this.onerror=null;this.src='https://placehold.co/600x700?text=HEDOOM'">
+      <div class="product-info">
+        <h3>${item.name}</h3>
+        <div class="price">${item.price} جنيه</div>
+        <button onclick="openProduct(${item.id})">عرض التفاصيل</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function setCategory(value,button){
+  category=value;
+  document.querySelectorAll(".categories button").forEach(btn=>btn.classList.remove("active"));
+  button.classList.add("active");
+  renderProducts();
+}
+
+function openProduct(id){
+  selectedProduct=items.find(item=>item.id===id);
+  selectedSize="";
+  selectedColor="";
+  quantity=1;
+
+  document.getElementById("modalImage").src=selectedProduct.image;
+  document.getElementById("modalName").textContent=selectedProduct.name;
+  document.getElementById("modalPrice").textContent=selectedProduct.price;
+  document.getElementById("quantity").textContent=quantity;
+
+  document.getElementById("sizeOptions").innerHTML=sizes.map(size=>
+    `<button onclick="selectSize('${size}',this)">${size}</button>`
+  ).join("");
+
+  document.getElementById("colorOptions").innerHTML=selectedProduct.colors.map(color=>
+    `<button onclick="selectColor('${color}',this)">${color}</button>`
+  ).join("");
+
+  document.getElementById("productModal").style.display="block";
+  document.body.style.overflow="hidden";
+}
+
+function closeModal(){
+  document.getElementById("productModal").style.display="none";
+  document.body.style.overflow="auto";
+}
+
+function selectSize(size,button){
+  selectedSize=size;
+  document.querySelectorAll("#sizeOptions button").forEach(btn=>btn.classList.remove("selected"));
+  button.classList.add("selected");
+}
+
+function selectColor(color,button){
+  selectedColor=color;
+  document.querySelectorAll("#colorOptions button").forEach(btn=>btn.classList.remove("selected"));
+  button.classList.add("selected");
+}
+
+function changeQuantity(change){
+  quantity=Math.max(1,quantity+change);
+  document.getElementById("quantity").textContent=quantity;
+}
+
+function addSelectedToCart(){
+  if(!selectedSize){alert("اختار المقاس أولًا");return}
+  if(!selectedColor){alert("اختار اللون أولًا");return}
+
+  const existing=cart.find(item=>
+    item.id===selectedProduct.id&&
+    item.size===selectedSize&&item.color===selectedColor
+  );
+
+  if(existing)existing.quantity+=quantity;
+  else cart.push({...selectedProduct,size:selectedSize,color:selectedColor,quantity});
+
+  renderCart();
+  closeModal();
+  alert("تمت إضافة المنتج للسلة");
+}
+
+function renderCart(){
+  const count=cart.reduce((sum,item)=>sum+item.quantity,0);
+  const subtotal=cart.reduce((sum,item)=>sum+item.price*item.quantity,0);
+
+  document.getElementById("cartCount").textContent=count;
+  document.getElementById("subtotal").textContent=subtotal;
+
+  document.getElementById("cartItems").innerHTML=cart.length===0
+    ?"السلة فارغة"
+    :cart.map((item,index)=>`
+      <div class="cart-line">
+        <strong>${item.name}</strong><br>
+        المقاس: ${item.size} | اللون: ${item.color}<br>
+        الكمية: ${item.quantity}<br>
+        السعر: ${item.price*item.quantity} جنيه
+        <button class="remove" onclick="removeItem(${index})">حذف</button>
+      </div>
+    `).join("");
+}
+
+function removeItem(index){
+  cart.splice(index,1);
+  renderCart();
+}
+
+function getTotals(){
+  const subtotal=cart.reduce((sum,item)=>sum+item.price*item.quantity,0);
+  const total=subtotal+SHIPPING;
+  const deposit=Math.round(total/3);
+  const remaining=total-deposit;
+  return {subtotal,shipping:SHIPPING,total,deposit,remaining};
+}
+
+function openCheckout(){
+  if(cart.length===0){alert("السلة فارغة! أضف منتجات أولًا.");return}
+
+  const t=getTotals();
+
+  document.getElementById("checkoutSummary").innerHTML=`
+    <h3>ملخص الدفع</h3>
+    <p>قيمة المنتجات: ${t.subtotal} جنيه</p>
+    <p>الشحن: ${t.shipping} جنيه</p>
+    <p>إجمالي الطلب: ${t.total} جنيه</p>
+    <hr>
+    <p><strong>المقدم (ثلث الإجمالي): ${t.deposit} جنيه</strong></p>
+    <p><strong>المتبقي عند الاستلام: ${t.remaining} جنيه</strong></p>
+  `;
+
+  document.getElementById("checkout").style.display="block";
+  document.getElementById("confirmation").style.display="none";
+  document.getElementById("checkout").scrollIntoView({behavior:"smooth"});
+}
+
+function closeCheckout(){
+  document.getElementById("checkout").style.display="none";
+}
+
+function updatePaymentInfo(){
+  const method=document.querySelector('input[name="payment"]:checked')?.value;
+  const box=document.getElementById("paymentInfo");
+
+  if(!method){box.style.display="none";return}
+
+  const t=getTotals();
+  box.style.display="block";
+  box.innerHTML=`
+    <strong>الدفع عن طريق ${method}</strong>
+    <p>حوّل مبلغ المقدم: <strong>${t.deposit} جنيه</strong></p>
+    <p>${PAYMENT_DETAILS[method]}</p>
+    <p>بعد التحويل، اكتب رقم العملية في الخانة التالية.</p>
+    <p class="small">المتبقي ${t.remaining} جنيه يتم دفعه عند استلام الطلب.</p>
+  `;
+}
+
+function confirmOrder(event){
+  event.preventDefault();
+
+  if(cart.length===0){alert("السلة فارغة");return}
+
+  const form=document.getElementById("checkoutForm");
+  const data=new FormData(form);
+  const method=data.get("payment");
+  const transaction=data.get("transaction").trim();
+
+  if(!method){alert("اختار طريقة دفع المقدم");return}
+  if(!transaction){alert("اكتب رقم عملية التحويل بعد الدفع");return}
+
+  const t=getTotals();
+  const orderId="HED-"+Date.now().toString().slice(-8);
+
+  const order={
+    orderId,
+    customer:{
+      name:data.get("name"),
+      phone:data.get("phone"),
+      governorate:data.get("governorate"),
+      city:data.get("city"),
+      address:data.get("address"),
+      notes:data.get("notes")
+    },
+    items:cart.map(item=>({...item})),
+    paymentMethod:method,
+    transaction,
+    totals:t,
+    status:"في انتظار مراجعة التحويل"
+  };
+
+  /*
+    حفظ الطلب على هذا الجهاز فقط.
+    يحتاج Backend لعرض الطلبات لصاحب المتجر من أجهزة أخرى.
+  */
+  try{
+    const orders=JSON.parse(localStorage.getItem("hedoomOrders")||"[]");
+    orders.push(order);
+    localStorage.setItem("hedoomOrders",JSON.stringify(orders));
+  }catch(e){}
+
+  currentOrder=order;
+
+  document.getElementById("confirmationDetails").innerHTML=`
+    <div class="success">
+      <h3>تم تسجيل الطلب بنجاح</h3>
+      <p>رقم الطلب: <strong>${orderId}</strong></p>
+      <p>الاسم: ${order.customer.name}</p>
+      <p>طريقة دفع المقدم: ${method}</p>
+      <p>المقدم: <strong>${t.deposit} جنيه</strong></p>
+      <p>المتبقي عند الاستلام: <strong>${t.remaining} جنيه</strong></p>
+      <p>الإجمالي شامل الشحن: ${t.total} جنيه</p>
+      <p>حالة الطلب: في انتظار مراجعة التحويل</p>
+    </div>
+    <p class="small">
+      احتفظ برقم الطلب. تأكد من وصول المقدم قبل تأكيد تجهيز الطلب.
+    </p>
+  `;
+
+  cart=[];
+  renderCart();
+  form.reset();
+  closeCheckout();
+
+  document.getElementById("confirmation").style.display="block";
+  document.getElementById("confirmation").scrollIntoView({behavior:"smooth"});
+}
+
+function newShopping(){
+  document.getElementById("confirmation").style.display="none";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+renderProducts();
+renderCart();
+</script>
+
+</body>
+</html>
